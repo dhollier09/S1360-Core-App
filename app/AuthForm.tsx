@@ -33,7 +33,7 @@ export default function AuthForm() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <h1>Inventory Manager</h1>
+        <h1>Training Guides</h1>
         <p className="subtitle">
           {mode === "signin" ? "Sign in to your account" : "Create an account"}
         </p>

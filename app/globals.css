@@ -323,3 +323,380 @@ tr.low-stock td:first-child::before {
   padding: 2px 4px;
   font-size: 14px;
 }
+
+/* ===== Training Guides ===== */
+
+.app-header {
+  margin-bottom: 12px;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 8px;
+}
+
+.role-employee { background: #e0e7ff; color: #3730a3; }
+.role-manager  { background: #dcfce7; color: #166534; }
+.role-admin    { background: #fde68a; color: #92400e; }
+.role-super_admin { background: #fecaca; color: #991b1b; }
+
+.main-nav {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-top: 16px;
+}
+
+.nav-btn {
+  background: transparent;
+  color: #6b7280;
+  border-radius: 0;
+  padding: 10px 16px;
+  border-bottom: 2px solid transparent;
+  font-weight: 500;
+  margin-bottom: -1px;
+}
+
+.nav-btn:hover {
+  color: #1f2937;
+}
+
+.nav-btn.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab {
+  background: transparent;
+  color: #6b7280;
+  padding: 10px 14px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  font-weight: 500;
+  margin-bottom: -1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab:hover {
+  color: #1f2937;
+}
+
+.tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.tab-count {
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 12px;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.tab.active .tab-count {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.guide-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guide-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 10px -4px rgba(37, 99, 235, 0.2);
+}
+
+.guide-category {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.guide-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.guide-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Guide detail */
+.guide-detail {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.guide-detail-header {
+  margin: 16px 0 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.guide-detail-header h2 {
+  font-size: 22px;
+  margin-top: 6px;
+}
+
+.guide-detail-description {
+  color: #6b7280;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.step-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.step-body {
+  flex: 1;
+}
+
+.step-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.step-description {
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.step-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid #e5e7eb;
+  display: block;
+}
+
+/* Admin / builder */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 8px 0 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-header h2,
+.admin-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-published { background: #dcfce7; color: #166534; }
+.badge-draft     { background: #f3f4f6; color: #6b7280; }
+.badge-self      { background: #dbeafe; color: #1e40af; font-size: 11px; }
+
+.editor-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-top: 8px;
+}
+
+.editor-card .field select,
+.field select {
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.step-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step-edit-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 24px 28px 1fr auto;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.step-edit-handle {
+  cursor: grab;
+  color: #9ca3af;
+  font-size: 18px;
+  user-select: none;
+  padding-top: 6px;
+  line-height: 1;
+}
+
+.step-edit-handle:active {
+  cursor: grabbing;
+}
+
+.step-edit-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.step-edit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.step-edit-title,
+.step-edit-desc {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+}
+
+.step-edit-title {
+  font-weight: 500;
+}
+
+.step-edit-desc {
+  resize: vertical;
+}
+
+.step-edit-image {
+  margin-top: 2px;
+}
+
+.step-edit-image-preview {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.step-edit-image-preview img {
+  max-width: 200px;
+  max-height: 120px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.step-edit-image-upload {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px dashed #d1d5db;
+  border-radius: 6px;
+  color: #2563eb;
+  font-size: 13px;
+  cursor: pointer;
+  background: #fafafa;
+}
+
+.step-edit-image-upload:hover {
+  background: #f3f4f6;
+}
+
+.step-edit-image-upload input {
+  display: none;
+}
+
+.step-edit-upload-err {
+  color: #991b1b;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .step-edit-item {
+    grid-template-columns: 24px 28px 1fr;
+  }
+  .step-edit-item > button.danger {
+    grid-column: 1 / -1;
+    justify-self: flex-end;
+  }
+}
