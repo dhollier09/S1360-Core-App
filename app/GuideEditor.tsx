@@ -21,15 +21,19 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   type Guide,
   type GuideStep,
+  type MediaItem,
   type Tab,
   type TargetRole,
   TAB_LABELS,
   TARGET_ROLE_LABELS,
+  parseVideoEmbed,
+  stepMedia,
 } from "@/lib/supabase";
 import {
   createStep,
   deleteStep,
   reorderSteps,
+  saveStepMedia,
   updateGuide,
   updateStep,
   uploadStepImage,
@@ -225,8 +229,6 @@ function StepEditor({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const [uploading, setUploading] = useState(false);
-  const [uploadErr, setUploadErr] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function patchAndSave(patch: Partial<GuideStep>) {
@@ -235,23 +237,6 @@ function StepEditor({
     saveTimer.current = setTimeout(() => {
       updateStep(step.id, patch).catch(() => {});
     }, 500);
-  }
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setUploadErr(null);
-    try {
-      const url = await uploadStepImage(guideId, step.id, file);
-      await updateStep(step.id, { image_url: url });
-      onChange({ image_url: url });
-    } catch (err: any) {
-      setUploadErr(err.message ?? "Upload failed");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
   }
 
   return (
@@ -274,34 +259,194 @@ function StepEditor({
           rows={3}
           onChange={(e) => patchAndSave({ description: e.target.value })}
         />
-        <div className="step-edit-image">
-          {step.image_url ? (
-            <div className="step-edit-image-preview">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={step.image_url} alt="" />
-              <button
-                type="button"
-                className="ghost"
-                onClick={async () => {
-                  await updateStep(step.id, { image_url: null });
-                  onChange({ image_url: null });
-                }}
-              >
-                Remove image
-              </button>
-            </div>
-          ) : (
-            <label className="step-edit-image-upload">
-              <input type="file" accept="image/*" onChange={handleFile} disabled={uploading} />
-              <span>{uploading ? "Uploading…" : "Add image"}</span>
-            </label>
-          )}
-          {uploadErr && <div className="step-edit-upload-err">{uploadErr}</div>}
-        </div>
+        <StepMediaEditor step={step} guideId={guideId} onChange={onChange} />
       </div>
       <button className="danger" type="button" onClick={onDelete}>
         Delete
       </button>
     </div>
   );
+}
+
+function StepMediaEditor({
+  step,
+  guideId,
+  onChange,
+}: {
+  step: GuideStep;
+  guideId: string;
+  onChange: (patch: Partial<GuideStep>) => void;
+}) {
+  const media = stepMedia(step);
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [addingVideo, setAddingVideo] = useState(false);
+  const captionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function persist(next: MediaItem[]) {
+    onChange({ media: next, image_url: null });
+    try {
+      await saveStepMedia(step.id, next);
+      // Also clear legacy image_url so we don't double-render
+      if (step.image_url) await updateStep(step.id, { image_url: null });
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to save media");
+    }
+  }
+
+  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setErr(null);
+    try {
+      const newItems: MediaItem[] = [];
+      for (const f of Array.from(files)) {
+        const url = await uploadStepImage(guideId, step.id, f);
+        newItems.push({ id: crypto.randomUUID(), type: "image", url, caption: "" });
+      }
+      await persist([...media, ...newItems]);
+    } catch (e: any) {
+      setErr(e.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  async function addVideo() {
+    const url = videoUrl.trim();
+    if (!url) return;
+    setErr(null);
+    try {
+      const item: MediaItem = { id: crypto.randomUUID(), type: "video", url, caption: "" };
+      await persist([...media, item]);
+      setVideoUrl("");
+      setAddingVideo(false);
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to add video");
+    }
+  }
+
+  async function removeAt(i: number) {
+    const next = media.filter((_, idx) => idx !== i);
+    await persist(next);
+  }
+
+  function moveAt(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= media.length) return;
+    const next = [...media];
+    [next[i], next[j]] = [next[j], next[i]];
+    persist(next);
+  }
+
+  function setCaption(i: number, caption: string) {
+    const next = media.map((m, idx) => (idx === i ? { ...m, caption } : m));
+    onChange({ media: next });
+    if (captionTimer.current) clearTimeout(captionTimer.current);
+    captionTimer.current = setTimeout(() => {
+      saveStepMedia(step.id, next).catch(() => {});
+    }, 500);
+  }
+
+  return (
+    <div className="step-edit-media">
+      {media.length > 0 && (
+        <div className="step-edit-media-list">
+          {media.map((m, i) => (
+            <div key={m.id} className="step-edit-media-item">
+              <div className="step-edit-media-preview">
+                {m.type === "image" ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={m.url} alt={m.caption ?? ""} />
+                ) : (
+                  <div className="step-edit-video-thumb">
+                    <span className="step-edit-video-icon">▶</span>
+                    <div className="step-edit-video-url">{shortUrl(m.url)}</div>
+                  </div>
+                )}
+              </div>
+              <div className="step-edit-media-controls">
+                <input
+                  className="step-edit-caption"
+                  placeholder="Caption (optional)"
+                  value={m.caption ?? ""}
+                  onChange={(e) => setCaption(i, e.target.value)}
+                />
+                <div className="step-edit-media-buttons">
+                  <button type="button" className="ghost" onClick={() => moveAt(i, -1)} disabled={i === 0}>
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => moveAt(i, 1)}
+                    disabled={i === media.length - 1}
+                  >
+                    ↓
+                  </button>
+                  <button type="button" className="danger" onClick={() => removeAt(i)}>
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="step-edit-media-add">
+        <label className="step-edit-image-upload">
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFiles}
+            disabled={uploading}
+          />
+          <span>{uploading ? "Uploading…" : "+ Add image(s)"}</span>
+        </label>
+        {addingVideo ? (
+          <div className="step-edit-video-add">
+            <input
+              type="url"
+              placeholder="YouTube / Vimeo / Loom URL"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addVideo();
+                }
+              }}
+              autoFocus
+            />
+            <button type="button" className="primary" onClick={addVideo}>
+              Add
+            </button>
+            <button type="button" className="ghost" onClick={() => { setAddingVideo(false); setVideoUrl(""); }}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="ghost" onClick={() => setAddingVideo(true)}>
+            + Add video
+          </button>
+        )}
+      </div>
+
+      {err && <div className="step-edit-upload-err">{err}</div>}
+    </div>
+  );
+}
+
+function shortUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    return `${u.hostname}${u.pathname.length > 20 ? u.pathname.slice(0, 20) + "…" : u.pathname}`;
+  } catch {
+    return url;
+  }
 }

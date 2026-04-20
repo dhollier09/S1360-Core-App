@@ -126,3 +126,11 @@ export async function uploadStepImage(guideId: string, stepId: string, file: Fil
   const { data } = supabase.storage.from("guide-images").getPublicUrl(path);
   return data.publicUrl;
 }
+
+export async function saveStepMedia(
+  stepId: string,
+  media: import("./supabase").MediaItem[]
+): Promise<void> {
+  const { error } = await supabase.from("guide_steps").update({ media }).eq("id", stepId);
+  if (error) throw error;
+}
