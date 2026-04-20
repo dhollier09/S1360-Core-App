@@ -13,5 +13,6 @@ export type ItemRow = {
   quantity: number;
   price: number;
   threshold: number;
+  user_id?: string;
   created_at?: string;
 };

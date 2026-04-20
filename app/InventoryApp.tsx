@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { supabase, type ItemRow } from "@/lib/supabase";
+import AuthForm from "./AuthForm";
 
 type Item = ItemRow;
 
-const emptyForm: Omit<Item, "id" | "created_at"> = {
+const emptyForm: Omit<Item, "id" | "created_at" | "user_id"> = {
   name: "",
   sku: "",
   category: "",
@@ -15,6 +17,9 @@ const emptyForm: Omit<Item, "id" | "created_at"> = {
 };
 
 export default function InventoryApp() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,9 +29,22 @@ export default function InventoryApp() {
   const [editing, setEditing] = useState<Item | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<Omit<Item, "id" | "created_at">>(emptyForm);
+  const [form, setForm] = useState<Omit<Item, "id" | "created_at" | "user_id">>(emptyForm);
+
+  // Subscribe to auth state
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthReady(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   async function load() {
+    if (!session) return;
     setLoading(true);
     setError(null);
     const { data, error } = await supabase
@@ -39,8 +57,9 @@ export default function InventoryApp() {
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    if (session) load();
+    else setItems([]);
+  }, [session?.user.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const categories = useMemo(
     () => Array.from(new Set(items.map((i) => i.category).filter(Boolean))).sort(),
@@ -68,7 +87,7 @@ export default function InventoryApp() {
 
   function openEdit(item: Item) {
     setEditing(item);
-    const { id: _id, created_at: _c, ...rest } = item;
+    const { id: _id, created_at: _c, user_id: _u, ...rest } = item;
     setForm(rest);
     setShowForm(true);
   }
@@ -80,7 +99,7 @@ export default function InventoryApp() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim() || saving) return;
+    if (!form.name.trim() || saving || !session) return;
     setSaving(true);
     setError(null);
     if (editing) {
@@ -91,7 +110,8 @@ export default function InventoryApp() {
         closeForm();
       }
     } else {
-      const { data, error } = await supabase.from("items").insert(form).select().single();
+      const payload = { ...form, user_id: session.user.id };
+      const { data, error } = await supabase.from("items").insert(payload).select().single();
       if (error) setError(error.message);
       else {
         setItems((prev) => [data as Item, ...prev]);
@@ -112,6 +132,10 @@ export default function InventoryApp() {
     }
   }
 
+  async function signOut() {
+    await supabase.auth.signOut();
+  }
+
   function numberField(key: "quantity" | "price" | "threshold") {
     return (
       <input
@@ -124,12 +148,25 @@ export default function InventoryApp() {
     );
   }
 
+  if (!authReady) {
+    return <div className="empty" style={{ margin: 40 }}>Loading…</div>;
+  }
+
+  if (!session) {
+    return <AuthForm />;
+  }
+
   return (
     <div className="container">
       <header>
         <div>
           <h1>Inventory Manager</h1>
-          <div className="subtitle">Synced with Supabase</div>
+          <div className="subtitle">
+            Signed in as {session.user.email}{" "}
+            <button type="button" className="ghost" onClick={signOut} style={{ marginLeft: 8 }}>
+              Sign out
+            </button>
+          </div>
         </div>
         <div className="stats">
           <div className="stat">
