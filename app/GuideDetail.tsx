@@ -2,6 +2,7 @@
 
 import { type Guide, type MediaItem, TAB_LABELS, parseVideoEmbed, stepMedia } from "@/lib/supabase";
 import { useGuideSteps } from "@/lib/useGuideBuilder";
+import { RenderedContent } from "./RichTextEditor";
 
 function MediaRenderer({ item }: { item: MediaItem }) {
   if (item.type === "image") {
@@ -45,7 +46,7 @@ export default function GuideDetail({ guide, onBack }: { guide: Guide; onBack: (
           {guide.category ? ` · ${guide.category}` : ""}
         </div>
         <h2>{guide.title}</h2>
-        {guide.description && <p className="guide-detail-description">{guide.description}</p>}
+        {guide.description && <RenderedContent html={guide.description} className="guide-detail-description" />}
       </div>
 
       {error && <div className="error-banner"><strong>Error:</strong> {error}</div>}
@@ -63,7 +64,7 @@ export default function GuideDetail({ guide, onBack }: { guide: Guide; onBack: (
                 <div className="step-number">{i + 1}</div>
                 <div className="step-body">
                   {s.title && <h3 className="step-title">{s.title}</h3>}
-                  {s.description && <p className="step-description">{s.description}</p>}
+                  {s.description && <RenderedContent html={s.description} className="step-description" />}
                   {media.length > 0 && (
                     <div className="step-media-gallery">
                       {media.map((m) => (

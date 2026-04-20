@@ -39,6 +39,7 @@ import {
   uploadStepImage,
   useGuideSteps,
 } from "@/lib/useGuideBuilder";
+import RichTextEditor from "./RichTextEditor";
 
 export default function GuideEditor({ guide, onClose }: { guide: Guide; onClose: () => void }) {
   const [meta, setMeta] = useState<Guide>(guide);
@@ -140,7 +141,12 @@ export default function GuideEditor({ guide, onClose }: { guide: Guide; onClose:
           </div>
           <div className="field full">
             <label>Description</label>
-            <input value={meta.description} onChange={(e) => patchMeta({ description: e.target.value })} />
+            <RichTextEditor
+              value={meta.description}
+              onChange={(html) => patchMeta({ description: html })}
+              placeholder="Short description shown in the guide list"
+              minHeight={80}
+            />
           </div>
           <div className="field">
             <label>Section</label>
@@ -252,12 +258,11 @@ function StepEditor({
           value={step.title}
           onChange={(e) => patchAndSave({ title: e.target.value })}
         />
-        <textarea
-          className="step-edit-desc"
-          placeholder="Step description…"
+        <RichTextEditor
           value={step.description}
-          rows={3}
-          onChange={(e) => patchAndSave({ description: e.target.value })}
+          onChange={(html) => patchAndSave({ description: html })}
+          placeholder="Step description…"
+          minHeight={100}
         />
         <StepMediaEditor step={step} guideId={guideId} onChange={onChange} />
       </div>

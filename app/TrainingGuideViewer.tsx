@@ -5,6 +5,10 @@ import { type Guide, type Profile, TAB_LABELS, type Tab } from "@/lib/supabase";
 import { useGuides } from "@/lib/useGuideBuilder";
 import GuideDetail from "./GuideDetail";
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export default function TrainingGuideViewer({ profile }: { profile: Profile }) {
   const { guides, loading, error } = useGuides();
   const [tab, setTab] = useState<Tab>("platform");
@@ -22,7 +26,7 @@ export default function TrainingGuideViewer({ profile }: { profile: Profile }) {
         if (!q) return true;
         return (
           g.title.toLowerCase().includes(q) ||
-          g.description.toLowerCase().includes(q) ||
+          stripHtml(g.description).toLowerCase().includes(q) ||
           g.category.toLowerCase().includes(q)
         );
       });
@@ -88,7 +92,7 @@ export default function TrainingGuideViewer({ profile }: { profile: Profile }) {
             >
               {g.category && <div className="guide-category">{g.category}</div>}
               <div className="guide-title">{g.title}</div>
-              {g.description && <div className="guide-description">{g.description}</div>}
+              {g.description && <div className="guide-description">{stripHtml(g.description)}</div>}
             </button>
           ))}
         </div>
